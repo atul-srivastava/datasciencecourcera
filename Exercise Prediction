@@ -1,0 +1,63 @@
+Exercise Prediction
+
+##Introduction The goal of this project is to predict the manner in which research participants exercised using data from an accelerometer device. Variables from the data sets were selected for analysis to predict the type of exercise. This report provides the following:
+
+Describes how the predictive model was built.
+How the model was cross validated.
+Expected out of sample error claculation.
+A prediction for 20 different test cases.
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har.
+
+##Data Processing
+
+
+trainsrc <- read.csv("pml-training.csv")
+testsrc <- read.csv("pml-testing.csv")
+dim(trainsrc)
+
+##Analysis
+
+From the training data we identified the data set has 160 columns and 19622 rows. It is also noted that some of the collumns have no values. We will build a model based on columns with valid values and non identifying row columns.
+
+## Remove row identifying variables 
+trainSet <- subset (trainsrc , select = -X: -num_window)
+testSet <- subset (testsrc , select = -X: -num_window)
+
+
+## Remove NA columns*
+trainSet <- trainSet[, sapply(trainSet, function(x) !any(is.na(x)))]
+trainSet <- trainSet[, sapply(trainSet, function(x) !any(x==""))]
+testSet <- testSet[, sapply(testSet, function(x) !any(is.na(x)))]
+
+library (caret)
+library (randomForest)
+
+Model Cross Validation
+
+In order to cross validate the model we will build two data sets. The model will use the random forest model. The random forest model was chosen for its high accuracy and minimum need for data transformations.
+
+set.seed (77452)
+trainIdx = createDataPartition(trainSet$classe, p = .75)[[1]]
+training = trainSet[trainIdx,]
+testing = trainSet[-trainIdx,]
+
+## Build the prediction model
+
+predictors <- training [, -53]
+decision <- training [, 53]
+rfMD <- randomForest (predictors, decision)
+
+Expected Out of Samlple Error Claculation
+
+From the confusion matrix below the model is 99% accurate. The out of sample error is .35% .
+
+predClass <- predict (rfMD, testing)
+confusionMatrix (testing$classe,predClass)
+##Results The prediction model yielded the following predicted values for the 20 test cases.
+
+predtest <- predict (rfMD, testSet) ; predtest
+
+
+Conclusions
+
+The random tree model performed accurately. The model expected accuracy is 99%. The out of sample error was calculated to be .35%.
