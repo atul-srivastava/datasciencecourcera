@@ -1,0 +1,78 @@
+title	author	date	output
+Reproducible_Research_WK2
+Reed
+Nov 2017
+html_document
+#Code chunk for loading libraries
+
+library(readr)
+library(dplyr)
+library(lubridate)
+library(ggplot2)
+#Code chunk for reading in the data
+
+#work
+#activity <- read_csv("C:/Users/reed/Documents/My Dropbox/Dani life/2017 Coursera/Course 5 - Reproducible/Wk2/activity.csv")
+#home
+activity <- read_csv("C:/Users/Reed/Dropbox/Dani life/2017 Coursera/Course 5 - Reproducible/Wk2/activity.csv")
+#Code chunk for histogram of the total number of steps taken each day
+
+total_number_daily_steps <- aggregate(steps~date, data=activity, na.remove = TRUE, FUN=sum)
+hist(total_number_daily_steps$steps)
+#Code chunk for the mean and median number of steps taken each day
+
+x <- mean(total_number_daily_steps$steps)
+x
+y <- median(total_number_daily_steps$steps)
+y
+#First answer: the mean total numberof steps taken each day is r x and the median is r y.
+
+#Time series plot of the average number of steps taken
+
+time_series <- tapply(activity$steps, activity$interval, mean, na.rm = TRUE)
+plot(row.names(time_series), time_series, type = "l", xlab = "Five minute intervals", ylab = "Average for days", main = "Average N of steps")
+#Code chunk for the 5-minute interval that, on average, contains the maximum number of steps
+
+max <- as.data.frame(time_series)
+max1 <- max(max$time_series, na.rm = TRUE)
+max2<- which(max$time_series==max1, arr.ind=T)
+z <-row.names(max2) 
+#The five minute interval that, on average, contains the maximum number of steps is r z.
+
+#Code to describe and show a strategy for imputing missing data (part 1)
+
+na_count <-sapply(activity, function(y) sum(length(which(is.na(y)))))
+na_count <- data.frame(na_count)
+na_count
+#Code to describe and show a strategy for imputing missing data (part 2)
+
+activity1 <- activity
+activity1$steps[is.na(activity1$steps)] <- 0
+#Histogram of the total number of steps taken each day after missing values are imputed
+
+total_number_daily_steps1 <- aggregate(steps~date, data=activity1, na.remove = TRUE, FUN=sum)
+hist(total_number_daily_steps1$steps)
+summary(total_number_daily_steps1$steps)
+#What is the impact of imputing missing data on the estimates of the total daily number of steps? #The mean number of steps is r z when missing data are coded as zero vs. r x when missing data are ignored.
+
+#Do these values differ from the estimates from the first part of the assignment? #Yes, when we replace NA with zeros, it reduces the mean steps per day by about 200.
+
+#Panel plot comparing the average number of steps taken per 5-minute interval across weekdays and weekends
+
+#create a vector of weekdays and make a new factor weekend vs weekday
+weekdays1 <- c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')
+activity1$week <- factor((weekdays(activity1$date) %in% weekdays1), levels=c(FALSE, TRUE), labels=c('weekend','weekday')) 
+#now make a weekday and a weekend file
+weekend <- activity1[activity1$week == "weekend",]
+weekday <- activity1[activity1$week == "weekday",]
+
+par(mfcol = c(2, 1))
+
+time_series1 <- tapply(weekend$steps, weekend$interval, mean, na.rm = TRUE)
+plot(row.names(time_series1), time_series1, type = "l", xlab = "Military time but with no semi colon to separate hours and minutes", 
+    ylab = "Weekend", main = "Average N of steps")
+
+time_series2 <- tapply(weekday$steps, weekday$interval, mean, na.rm = TRUE)
+plot(row.names(time_series2), time_series2, type = "l", xlab = "Military time but with no semicolon to separate hours and minutes", 
+    ylab = "Weekdays")
+
