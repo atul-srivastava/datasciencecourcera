@@ -1,0 +1,194 @@
+Course_Project_2
+Bigyan
+
+November 9, 2017
+
+For the course project, the following library has been loaded to plot and make the html document.
+
+#loading required library packages
+library("knitr")
+library("lattice")
+library("ggplot2")
+library("gridExtra")
+## Warning: package 'gridExtra' was built under R version 3.4.2
+Now, the dataset storm has been loaded and it was seen as shown in the Table below:
+
+setwd("J:/SDSU/Coursera/Reproducible research/Asgn2/strom_data")
+require("knitr")
+opts_knit$set(root.dir = "J:/SDSU/Coursera/Reproducible research/Asgn2/strom_data")
+strom<-read.csv("strom_data.csv", sep = ",")
+head(strom)
+##   STATE__        BGN_DATE BGN_TIME TIME_ZONE COUNTY COUNTYNAME STATE
+## 1       1  4/18/1950 0:00      130       CST     97     MOBILE    AL
+## 2       1  4/18/1950 0:00      145       CST      3    BALDWIN    AL
+## 3       1  2/20/1951 0:00     1600       CST     57    FAYETTE    AL
+## 4       1   6/8/1951 0:00      900       CST     89    MADISON    AL
+## 5       1 11/15/1951 0:00     1500       CST     43    CULLMAN    AL
+## 6       1 11/15/1951 0:00     2000       CST     77 LAUDERDALE    AL
+##    EVTYPE BGN_RANGE BGN_AZI BGN_LOCATI END_DATE END_TIME COUNTY_END
+## 1 TORNADO         0                                               0
+## 2 TORNADO         0                                               0
+## 3 TORNADO         0                                               0
+## 4 TORNADO         0                                               0
+## 5 TORNADO         0                                               0
+## 6 TORNADO         0                                               0
+##   COUNTYENDN END_RANGE END_AZI END_LOCATI LENGTH WIDTH F MAG FATALITIES
+## 1                    0                        14   100 3   0          0
+## 2                    0                         2   150 2   0          0
+## 3                    0                       0.1   123 2   0          0
+## 4                    0                         0   100 2   0          0
+## 5                    0                         0   150 2   0          0
+## 6                    0                       1.5   177 2   0          0
+##   INJURIES PROPDMG PROPDMGEXP CROPDMG CROPDMGEXP WFO STATEOFFIC ZONENAMES
+## 1       15      25          K       0                                    
+## 2        0     2.5          K       0                                    
+## 3        2      25          K       0                                    
+## 4        2     2.5          K       0                                    
+## 5        2     2.5          K       0                                    
+## 6        6     2.5          K       0                                    
+##   LATITUDE LONGITUDE LATITUDE_E LONGITUDE_ REMARKS REFNUM X X.1 X.2
+## 1     3040      8812       3051       8806              1          
+## 2     3042      8755          0          0              2          
+## 3     3340      8742          0          0              3          
+## 4     3458      8626          0          0              4          
+## 5     3412      8642          0          0              5          
+## 6     3450      8748          0          0              6
+Now, we need to trim the dataset for our purpose. This requires selecting of certain variables from the dataset. The variables includes begin data “BGN_DATE”, event type “EVTYPE”, numbers of death “FATALITIES”, number of injuries “INJURIES”, property damage “PROPDMG” and crop damage “CROPDMG”. And the summary of the event can be obtained as:
+
+# Trim the data set to required columns only
+stormEvent <- strom[, c("BGN_DATE", "EVTYPE", "FATALITIES", "INJURIES", 
+    "PROPDMG", "PROPDMGEXP", "CROPDMG", "CROPDMGEXP")]
+summary (stormEvent)
+##            BGN_DATE                    EVTYPE         FATALITIES    
+##  5/25/2011 0:00:  1202   HAIL             :288612   0      :895266  
+##  4/27/2011 0:00:  1193   TSTM WIND        :219921   1      :  5008  
+##  6/9/2011 0:00 :  1030   THUNDERSTORM WIND: 82563          :  1416  
+##  5/30/2004 0:00:  1016   TORNADO          : 60577   2      :  1003  
+##  4/4/2011 0:00 :  1009   FLASH FLOOD      : 54277   3      :   316  
+##  4/2/2006 0:00 :   981   FLOOD            : 25326   4      :   167  
+##  (Other)       :897439   (Other)          :172594   (Other):   694  
+##     INJURIES         PROPDMG         PROPDMGEXP        CROPDMG      
+##  0      :884566   0      :663188          :467421   0      :880055  
+##  1      :  7756   5      : 32649   K      :424610   5      :  4276  
+##  2      :  3134   10     : 22010   M      : 11320   10     :  2381  
+##  3      :  1550   1      : 19066   0      :   216   50     :  2011  
+##         :  1495   2      : 17865    F0    :   143          :  1427  
+##  4      :   927   25     : 17695   B      :    40   1      :  1404  
+##  (Other):  4442   (Other):131397   (Other):   120   (Other): 12316  
+##                                     CROPDMGEXP    
+##                                          :619698  
+##  K                                       :281832  
+##  M                                       :  1994  
+##   G4                                     :   143  
+##  OKLAHOMA, Western, Central and Southeast:   137  
+##  k                                       :    21  
+##  (Other)                                 :    45
+The data has been separated into two types: 1. fatalities data :- which consists of number of fatalities and injuries due to the event. 2. economic data :- which consists of amount of losses on the property and crop incurred due to the event. After that the sum of the fatalities for each individual event has been classified and ranked in descending order and top five event are selected. The events for the fatalities are listed as:
+
+fatalities_data<-subset(strom, strom$FATALITIES != 0 & strom$INJURIES != 0, select = c(EVTYPE, FATALITIES, INJURIES))
+
+fatalities_list<-aggregate(as.numeric(fatalities_data$FATALITIES), 
+          by = list(fatalities_data$EVTYPE), FUN=sum)
+colnames(fatalities_list)<- c("EVENT", "FATALITIES")
+
+fatalities_list <- fatalities_list[order(fatalities_list$FATALITIES, decreasing = TRUE), ][1:5, ]
+
+kable(fatalities_list, format="pandoc")
+EVENT	FATALITIES
+95	TORNADO	35952
+65	LIGHTNING	3464
+98	TSTM WIND	2376
+26	EXCESSIVE HEAT	1872
+31	FLASH FLOOD	1589
+Similarly, the sum of the injuries for each individual event has been classified and ranked in descending order and top five event are selected. The events for the injuries are listed as:
+
+injury_list<-aggregate(as.numeric(fatalities_data$INJURIES), 
+          by = list(fatalities_data$EVTYPE), FUN=sum)
+colnames(injury_list)<- c("EVENT", "INJURIES")
+
+injury_list <- injury_list[order(injury_list$INJURIES, decreasing = TRUE), ][1:5, ]
+kable(injury_list, format="pandoc")
+EVENT	INJURIES
+95	TORNADO	133109
+65	LIGHTNING	13508
+98	TSTM WIND	9869
+26	EXCESSIVE HEAT	5280
+53	HIGH WIND	4864
+Now, the barplot for the above tabular data has been constructed for the better visualization. So, the plot is obtained for the number of fatalities and injuries are shown below.
+
+Death_plot <- ggplot() + geom_bar(data = fatalities_list, aes(x = EVENT, 
+    y = FATALITIES, fill = interaction(FATALITIES, EVENT)), stat = "identity", 
+    show.legend = F) + theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+    xlab("Harmful Events") + ylab("No. of fatailities") + ggtitle("Top 5 weather events causing fatalities") + 
+    theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+
+Injury_plot <- ggplot() + geom_bar(data = injury_list, aes(x = EVENT, 
+    y = INJURIES, fill = interaction(INJURIES, EVENT)), stat = "identity", 
+    show.legend = F) + theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+    xlab("Harmful Events") + ylab("No. of INjuries") + ggtitle("Top 5 weather events causing Injuries") + 
+    theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+grid.arrange(Death_plot, Injury_plot, ncol=2)
+
+
+So, it is seen that from the fatalities data and the injury data, we can see the tornado has the significant impact in camparision to the other variables. Similarly, for the economic data, we look at the property damage and the crop damage caused by the different events. The K, M, B value on PROPDMGEXP and CROPDMGEXP has been converted to numeric value to 1e3, 1e6 and 1e9.And the total damage has been calculated for each event and tabulated in separated columns. Performing the similar analysis, we can identify the top 5 events for the property damage and crop damage which are tabulated below as:
+
+economic_data<- subset(strom, strom$PROPDMG != 0 & strom$CROPDMG != 0, select = c(EVTYPE,PROPDMG,PROPDMGEXP,CROPDMG,CROPDMGEXP))
+
+economic_data$PROPDMGEXP <- gsub("k", 1e+03, economic_data$PROPDMGEXP, ignore.case = TRUE)
+economic_data$CROPDMGEXP <- gsub("k", 1e+03, economic_data$CROPDMGEXP, ignore.case = TRUE)
+
+economic_data$PROPDMGEXP <- gsub("m", 1e+06, economic_data$PROPDMGEXP, ignore.case = TRUE)
+economic_data$CROPDMGEXP <- gsub("m", 1e+06, economic_data$CROPDMGEXP, ignore.case = TRUE)
+
+economic_data$PROPDMGEXP <- gsub("b", 1e+09, economic_data$PROPDMGEXP, ignore.case = TRUE)
+economic_data$CROPDMGEXP <- gsub("b", 1e+09, economic_data$CROPDMGEXP, ignore.case = TRUE)
+
+economic_data$TOTALPROPDMG <- as.numeric(economic_data$PROPDMG)* as.numeric(economic_data$PROPDMGEXP)
+## Warning: NAs introduced by coercion
+economic_data$TOTALCROPDMG <- as.numeric(economic_data$CROPDMG)* as.numeric(economic_data$CROPDMGEXP)
+## Warning: NAs introduced by coercion
+PROPDMG_list<-aggregate(as.numeric(economic_data$TOTALPROPDMG), 
+          by = list(economic_data$EVTYPE), FUN=sum)
+colnames(PROPDMG_list)<- c("EVENT", "TOTALPROPDMG")
+
+PROPDMG_list <- PROPDMG_list[order(PROPDMG_list$TOTALPROPDMG, decreasing = TRUE), ][1:5, ]
+kable(PROPDMG_list,format = "pandoc")
+EVENT	TOTALPROPDMG
+59	HURRICANE/TYPHOON	4.161484e+12
+64	RIVER FLOOD	9.546663e+11
+54	HURRICANE	7.797388e+11
+26	FLOOD	5.050238e+11
+57	HURRICANE OPAL	4.304100e+11
+Similarly, the sum of the losses due to crop damage for each individual event has been classified and ranked in descending order and top five event are selected. The events for the crop damage are listed as:
+
+CROPDMG_list<-aggregate(as.numeric(economic_data$TOTALCROPDMG), 
+          by = list(economic_data$EVTYPE), FUN=sum)
+colnames(CROPDMG_list)<- c("EVENT", "TOTALCROPDMG")
+
+CROPDMG_list <- CROPDMG_list[order(CROPDMG_list$TOTALCROPDMG, decreasing = TRUE), ][1:5, ]
+
+kable(CROPDMG_list,format = "pandoc")
+EVENT	TOTALCROPDMG
+61	ICE STORM	308057132000
+64	RIVER FLOOD	307988154000
+59	HURRICANE/TYPHOON	43462416000
+26	FLOOD	41210322000
+22	FLASH FLOOD	23634989000
+Now, the barplot for the above tabular data has been constructed for the better visualization. So, the plot is obtained for the number of fatalities and injuries are shown below.
+
+Propdamage_plot <- ggplot() + geom_bar(data = PROPDMG_list, aes(x = EVENT, 
+    y = TOTALPROPDMG, fill = interaction(TOTALPROPDMG, EVENT)), stat = "identity",     show.legend = F) + theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+    xlab("Harmful Events") + ylab("Amount lost in prop damage") + ggtitle("Top 5 weather events causing prop damage") + 
+    theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+Cropdamage_plot <- ggplot() + geom_bar(data = CROPDMG_list, aes(x = EVENT, 
+    y = TOTALCROPDMG, fill = interaction(TOTALCROPDMG, EVENT)), stat = "identity",     show.legend = F) + theme(axis.text.x = element_text(angle = 30, hjust = 1)) + 
+    xlab("Harmful Events") + ylab("Amount lost in crop damage") + ggtitle("Top 5 weather events causing crop damage") + 
+    theme(axis.text.x = element_text(angle = 30, hjust = 1))
+
+grid.arrange(Propdamage_plot, Cropdamage_plot, ncol=2)
+
+
+So, it is seen that from the property damage and crop damage data, we can see the hurricane/typhoon has the significant impact on property damage data in camparision to the other variables.And for the crop damage, we can see that ice storm and river flood has the impact.
