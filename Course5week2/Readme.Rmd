@@ -1,0 +1,8 @@
+title	author	date	output
+Readme
+Reed
+October 18, 2017
+html_document
+##trying to explore with git and git hub
+
+knitr::opts_chunk$set(echo = TRUE)
